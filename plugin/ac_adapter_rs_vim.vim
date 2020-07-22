@@ -1,4 +1,5 @@
 let s:rust_tab = "    "
+let s:ac_adapter_rs_crate_path = expand($HOME) . "/github/ngtkana/ac-adapter-rs"
 
 function! s:contains_doc_comment(line)
   return match(a:line, "///") != -1 || match(a:line, "//!") != -1
@@ -30,10 +31,9 @@ function! s:contains_cfg_test(line)
 endfunction
 
 function! s:construct_filepath_from_libname(libname)
-  let l:ac_adapter_rs_path = expand($HOME) . "/github/ac-adapter-rs"
   let l:lib_rs_relative_path = "src/lib.rs"
 
-  return l:ac_adapter_rs_path
+  return s:ac_adapter_rs_crate_path
   \ . "/"
   \ . a:libname
   \ . "/"
@@ -41,7 +41,15 @@ function! s:construct_filepath_from_libname(libname)
 endfunction
 
 " # parameters
+" ident: string snake_case または chain-case の文字列です。
 "
+" # returns
+" snake_case に変換します。
+function! s:to_snake_case(ident)
+    return split(a:ident, "-")->join("_")
+endfunction
+
+" # parameters
 " lines: [string]
 " ファイルのすべての行です。
 "
@@ -84,24 +92,18 @@ function! s:collect_essential_lines(lines)
 endfunction
 
 " # parameters
-"
-" lines: [string]
-" 必要な行の内容のリスト
-"
-" libname: string
-" ユーザーに指定されたライブラリ名
+" lines: [string] 必要な行の内容のリスト
+" snake_case_libname: snake_case に変換されたライブラリ名
 "
 " # returns
-"
-" こんな形にします。
+" " こんな形にします。
 " tab はスクリプトローカル変数で決めます。
-"
-" mod lib {
+" " mod lib {
 "     contents
 " }
 "
-function! s:throw_into_mod_libname(lines, libname)
-  let ret = ["mod " . a:libname . " {"]
+function! s:throw_into_mod_libname(lines, snake_case_libname)
+  let ret = ["mod " . a:snake_case_libname . " {"]
 
   for l:line in a:lines
     " 空行以外を 1 段階インデントです。
@@ -116,6 +118,31 @@ function! s:throw_into_mod_libname(lines, libname)
   return ret
 endfunction
 
+
+" # parameters
+"
+" lines: [string]
+" mod libname に包まれた行のあつまりです。
+"
+" libname: string
+" ユーザーに指定されたライブラリ名
+"
+" # returns
+"
+" fold marker をつけてこんな感じにします。
+"
+" // libname {{{
+" mod libname {
+" }
+" // }}}
+"
+function! s:add_fold_markers(lines, libname)
+  let l:head = "// " . a:libname . " {{{"
+  let l:tail = "// }}}"
+
+  return [l:head] + a:lines + [l:tail]
+endfunction
+
 " # parameters
 "
 " libname: ライブラリのお名前
@@ -125,9 +152,12 @@ endfunction
 " なんかします。
 "
 function! g:ac_adapter_rs_vim#Fire(libname)
+  " chain-case はコンパイルできないので snake_case に変換です。
+  let l:snake_case_libname = s:to_snake_case(a:libname)
+
   " ファイルが存在しなければ即リターンです。
-  let s:filename = s:construct_filepath_from_libname(a:libname)
-  if !filereadable(s:filename)
+  let l:filename = s:construct_filepath_from_libname(a:libname)
+  if !filereadable(l:filename)
     echo "ERROR: ac-adapter-rs-vim aborted failing a file"
     return
   endif
@@ -141,8 +171,11 @@ function! g:ac_adapter_rs_vim#Fire(libname)
   " 必要な行だけを抽出です。
   let l:lines = s:collect_essential_lines(l:lines)
 
-  " mod libname {} に包みます。
-  let l:lines = s:throw_into_mod_libname(l:lines, a:libname)
+  " mod snake_case_libname {} に包みます。
+  let l:lines = s:throw_into_mod_libname(l:lines, l:snake_case_libname)
+
+  " fold marker に包みます。
+  let l:lines = s:add_fold_markers(l:lines, a:libname)
 
   " 集めた行をバッファに書き込みます。
   :call append('.', l:lines)
