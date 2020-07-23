@@ -120,21 +120,11 @@ endfunction
 
 
 " # parameters
-"
-" lines: [string]
-" mod libname に包まれた行のあつまりです。
-"
-" libname: string
-" ユーザーに指定されたライブラリ名
+" lines: [string] ソースコードです。すでに mod に包まれているとします。
+" libname: string ユーザーに指定されたライブラリ名
 "
 " # returns
-"
-" fold marker をつけてこんな感じにします。
-"
-" // libname {{{
-" mod libname {
-" }
-" // }}}
+" fold marker とライブラリ名をつけます。
 "
 function! s:add_fold_markers(lines, libname)
   let l:head = "// " . a:libname . " {{{"
@@ -143,13 +133,10 @@ function! s:add_fold_markers(lines, libname)
   return [l:head] + a:lines + [l:tail]
 endfunction
 
+" メインです。
+"
 " # parameters
-"
 " libname: ライブラリのお名前
-"
-" # effects
-"
-" なんかします。
 "
 function! g:ac_adapter_rs_vim#Fire(libname)
   " chain-case はコンパイルできないので snake_case に変換です。
