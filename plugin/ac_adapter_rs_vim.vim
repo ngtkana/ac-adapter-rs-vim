@@ -1,5 +1,5 @@
 let s:rust_tab = "    "
-let s:ac_adapter_rs_crate_path = expand($HOME) . "/github/ngtkana/ac-adapter-rs"
+let s:ac_adapter_rs_crate_path = expand($HOME) . "/github/ngtkana/procon/ac-adapter-rs"
 
 function! s:contains_doc_comment(line) abort
   return match(a:line, "///") != -1 || match(a:line, "//!") != -1
