@@ -157,5 +157,5 @@ function! g:ac_adapter_rs_vim#Fire(libname) abort
   let l:lines = s:add_fold_markers(l:lines, a:libname)
 
   " 集めた行をバッファに書き込みます。
-  :call append('.', l:lines)
+  :call append(line('.') - 1, l:lines)
 endfunction
