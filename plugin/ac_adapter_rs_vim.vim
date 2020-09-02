@@ -30,10 +30,30 @@ function! s:contains_cfg_test(line) abort
   return match(a:line, "cfg(test)") != -1
 endfunction
 
-function! s:construct_filepath_from_libname(libname) abort
+" `utils` から探します。
+function! s:construct_utils_filepath_from_libname(libname) abort
   let l:lib_rs_relative_path = "src/lib.rs"
 
   return s:ac_adapter_rs_crate_path
+  \ . "/"
+  \ . "crates"
+  \ . "/"
+  \ . "utils"
+  \ . "/"
+  \ . a:libname
+  \ . "/"
+  \ . l:lib_rs_relative_path
+endfunction
+
+" `algolib` から探します。
+function! s:construct_algolib_filepath_from_libname(libname) abort
+  let l:lib_rs_relative_path = "src/lib.rs"
+
+  return s:ac_adapter_rs_crate_path
+  \ . "/"
+  \ . "crates"
+  \ . "/"
+  \ . "algolib"
   \ . "/"
   \ . a:libname
   \ . "/"
@@ -135,11 +155,19 @@ function! g:ac_adapter_rs_vim#Fire(libname) abort
   let l:snake_case_libname = s:to_snake_case(a:libname)
 
   " ファイルが存在しなければ即リターンです。
-  let l:filename = s:construct_filepath_from_libname(a:libname)
-  if !filereadable(l:filename)
+  let l:utils_filename = s:construct_utils_filepath_from_libname(a:libname)
+  let l:algolib_filename = s:construct_algolib_filepath_from_libname(a:libname)
+  if !filereadable(l:utils_filename) && !filereadable(l:algolib_filename)
     echo "ERROR: ac-adapter-rs-vim aborted failing a file"
+    \ . l:filename
     return
   endif
+  if filereadable(l:utils_filename) && filereadable(l:algolib_filename)
+    echo "ERROR: found both in utils and algolib"
+    \ . l:filename
+    return
+  endif
+  let l:filename = filereadable(l:utils_filename) ? l:utils_filename : l:algolib
 
   let lines = [] " ペーストすべき行を集めていきます。
   " ファイルのすべての行を走査してリストに集めます。
