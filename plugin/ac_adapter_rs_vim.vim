@@ -12,6 +12,6 @@ function! g:ac_adapter_rs_vim#Fire(libname) abort
 
   " 集めた行をバッファに書き込みます。
   for line in split(l:result, '\n')
-    call append(line('.') - 1, l:line)
+    call append(line('.'), l:line)
   endfor
 endfunction
