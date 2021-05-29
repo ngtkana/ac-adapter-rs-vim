@@ -1,6 +1,6 @@
 function! g:ac_adapter_rs_vim#Fire(libname) abort
   " procon-bundler さんを召喚します。
-  let command = "procon-bundler --repo " . g:ac_adapter_rs_vim#repo . " --name " . a:libname
+  let command = "procon-bundler find " . g:ac_adapter_rs_vim#workspace . " " . a:libname
   let result = system(command)
 
   " エラー処理をします。
