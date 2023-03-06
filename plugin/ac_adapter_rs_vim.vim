@@ -5,9 +5,8 @@ function! g:ac_adapter_rs_vim#Fire(libname) abort
 
   " エラー処理をします。
   if v:shell_error
-    echo "procon-bundler さんのえらーです。"
+    echo "ERROR: from procon-bundler"
     echo l:result
-    abort
   endif
 
   " 集めた行をバッファに書き込みます。
